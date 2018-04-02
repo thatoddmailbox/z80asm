@@ -9,7 +9,7 @@ import (
 const KiB = 1024
 
 func main() {
-	log.Println("gbasm")
+	log.Println("z80asm")
 
 	workingDirectory, err := os.Getwd()
 	if err != nil {
@@ -17,8 +17,6 @@ func main() {
 	}
 
 	ReadConfigFile(workingDirectory)
-
-	ROM_ValidateParameters()
 
 	ROM_Create(workingDirectory)
 

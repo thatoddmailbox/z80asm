@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"io/ioutil"
 	"os"
 	"path"
@@ -18,7 +17,8 @@ func ReadConfigFile(basePath string) {
 	filePath := path.Join(basePath, "info.toml")
 
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		panic(errors.New("missing info.toml file"))
+		// panic(errors.New("missing info.toml file"))
+		return
 	}
 
 	fileContents, err := ioutil.ReadFile(filePath)
