@@ -55,12 +55,14 @@ var OpCodes_Table = map[string]OpCodeInfo{
 	"INC": OpCodeInfo{[]int{1}},
 	"DI": OpCodeInfo{[]int{0}},
 	"EI": OpCodeInfo{[]int{0}},
+	"IN": OpCodeInfo{[]int{1, 2}},
 	"HALT": OpCodeInfo{[]int{0}},
 	"LD": OpCodeInfo{[]int{2}},
 	"LDH": OpCodeInfo{[]int{2}},
 	"LDI": OpCodeInfo{[]int{2}},
 	"LDD": OpCodeInfo{[]int{2}},
 	"NOP": OpCodeInfo{[]int{0}},
+	"OUT": OpCodeInfo{[]int{2}},
 	"POP": OpCodeInfo{[]int{1}},
 	"PUSH": OpCodeInfo{[]int{1}},
 	"RET": OpCodeInfo{[]int{0, 1}},
@@ -381,6 +383,30 @@ func OpCodes_GetOutput(instruction Instruction, fileBase string, lineNumber int)
 	case "EI":
 		return []byte{0xFB}
 
+	case "IN":
+		if len(instruction.Operands) == 1 {
+			if instruction.Operands[0] == "[C]" {
+				return []byte{0xED, 0x70}
+			} else {
+				log.Fatalf("Invalid operands '%s' for %s instruction at %s:%d", instruction.Operands[0], instruction.Mnemonic, fileBase, lineNumber)
+			}
+		} else {
+			dstType := OpCodes_GetOperandType(instruction, 0, false)
+			srcType := OpCodes_GetOperandType(instruction, 1, false)
+			dstVal := OpCodes_Table_R[instruction.Operands[0]]
+			if dstType == OperandRegister8 && instruction.Operands[1] == "[C]" {
+				return []byte{0xED, OpCodes_AsmXZY(1, 0, dstVal)}
+			} else if srcType == OperandValueIndirect && instruction.Operands[0] == "A" {
+				srcVal, err := strconv.Atoi(strings.Replace(strings.Replace(instruction.Operands[1], "[", "", -1), "]", "", -1))
+				if err != nil { panic(err) }
+
+				OpCodes_EnsureNumberIsByte(srcVal, fileBase, lineNumber)
+				return []byte{0xDB, byte(srcVal & 0xFF)}
+			} else {
+				log.Fatalf("Invalid operands '%s' and '%s' for %s instruction at %s:%d", instruction.Operands[0], instruction.Operands[1], instruction.Mnemonic, fileBase, lineNumber)
+			}
+		}
+
 	case "HALT":
 		return []byte{0x76}
 
@@ -498,6 +524,24 @@ func OpCodes_GetOutput(instruction Instruction, fileBase string, lineNumber int)
 
 	case "NOP":
 		return []byte{0x00}
+
+	case "OUT":
+		dstType := OpCodes_GetOperandType(instruction, 0, false)
+		srcType := OpCodes_GetOperandType(instruction, 1, false)
+		srcVal := OpCodes_Table_R[instruction.Operands[1]]
+		if instruction.Operands[0] == "[C]" && srcType == OperandRegister8 {
+			return []byte{0xED, OpCodes_AsmXZY(1, 1, srcVal)}
+		} else if instruction.Operands[0] == "[C]" && instruction.Operands[1] == "0" {
+			return []byte{0xED, OpCodes_AsmXZY(1, 1, 6)}
+		} else if dstType == OperandValueIndirect && instruction.Operands[1] == "A" {
+			dstVal, err := strconv.Atoi(strings.Replace(strings.Replace(instruction.Operands[0], "[", "", -1), "]", "", -1))
+			if err != nil { panic(err) }
+
+			OpCodes_EnsureNumberIsByte(dstVal, fileBase, lineNumber)
+			return []byte{0xD3, byte(dstVal & 0xFF)}
+		} else {
+			log.Fatalf("Invalid operands '%s' and '%s' for %s instruction at %s:%d", instruction.Operands[0], instruction.Operands[1], instruction.Mnemonic, fileBase, lineNumber)
+		}
 
 	case "POP":
 		fallthrough

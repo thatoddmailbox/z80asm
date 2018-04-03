@@ -166,6 +166,16 @@ func TestROTInstructions(t *testing.T) {
 	TryTestInput(t, Instruction{"SRL", []string{"[HL]"}}, []byte{0xCB, 0x3E})
 }
 
+func TestDataInstructions(t *testing.T) {
+	TryTestInput(t, Instruction{"IN", []string{"[C]"}}, []byte{0xED, 0x70})
+	TryTestInput(t, Instruction{"IN", []string{"C", "[C]"}}, []byte{0xED, 0x48})
+	TryTestInput(t, Instruction{"IN", []string{"A", "[66]"}}, []byte{0xDB, 0x42})
+
+	TryTestInput(t, Instruction{"OUT", []string{"[C]", "B"}}, []byte{0xED, 0x41})
+	TryTestInput(t, Instruction{"OUT", []string{"[C]", "0"}}, []byte{0xED, 0x71})
+	TryTestInput(t, Instruction{"OUT", []string{"[66]", "A"}}, []byte{0xD3, 0x42})
+}
+
 func TestMiscInstructions(t *testing.T) {
 	TryTestInput(t, Instruction{"DB", []string{"66"}}, []byte{0x42})
 	TryTestInput(t, Instruction{"DB", []string{"66", "66"}}, []byte{0x42, 0x42})
