@@ -8,6 +8,7 @@ import (
 type ROM struct {
 	Info                 ROMInfo
 	Output               [8 * KiB]byte
+	UsedByteCount        int
 	Definitions          map[string]int
 	UnpointedDefinitions []string
 }

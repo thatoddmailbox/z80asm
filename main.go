@@ -24,4 +24,8 @@ func main() {
 	for name, val := range CurrentROM.Definitions {
 		log.Println("*", name, val, "0x"+strconv.FormatInt(int64(val), 16))
 	}
+
+	log.Println()
+	log.Printf("Usage: %d out of 8192 bytes", CurrentROM.UsedByteCount)
+	log.Printf("       %d bytes excluding font", CurrentROM.UsedByteCount-2048)
 }
