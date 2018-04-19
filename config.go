@@ -9,7 +9,7 @@ import (
 )
 
 type ROMInfo struct {
-	Name string
+	Name        string
 	SupportsDMG bool
 }
 

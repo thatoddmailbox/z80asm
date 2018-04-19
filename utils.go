@@ -1,7 +1,7 @@
 package main
 
 func Utils_ByteSlicesEqual(a, b []byte) bool {
-	if a == nil && b == nil { 
+	if a == nil && b == nil {
 		return true
 	}
 

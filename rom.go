@@ -6,9 +6,9 @@ import (
 )
 
 type ROM struct {
-	Info ROMInfo
-	Output [8*KiB]byte
-	Definitions map[string]int
+	Info                 ROMInfo
+	Output               [8 * KiB]byte
+	Definitions          map[string]int
 	UnpointedDefinitions []string
 }
 
@@ -24,8 +24,12 @@ func ROM_Create(basePath string) {
 
 	// output the actual file
 	outputFile, err := os.OpenFile(outputFileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 	defer outputFile.Close()
 	_, err = outputFile.Write(CurrentROM.Output[:])
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 }
