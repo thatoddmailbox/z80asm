@@ -133,6 +133,16 @@ func Assembler_ParseFilePass(filePath string, fileBase string, origin int, maxLe
 
 				CurrentROM.Definitions[key] = val
 
+			case "bank":
+				newBank, valid := Assembler_ParseNumber(instructionParts[1])
+				if !valid {
+					log.Fatalf("Expected number, got '%s' at %s:%d", instructionParts[1], fileBase, lineNumber)
+				}
+				if newBank > ROM_BankCount-1 {
+					log.Fatalf("Invalid bank number '%s' at %s:%d", instructionParts[1], fileBase, lineNumber)
+				}
+				CurrentROM.CurrentBank = newBank
+
 			case "org":
 				newOrigin, valid := Assembler_ParseNumber(instructionParts[1])
 				if !valid {
@@ -225,8 +235,14 @@ func Assembler_ParseFilePass(filePath string, fileBase string, origin int, maxLe
 						}
 					}
 
+					countBytes := false
+
+					if pass != 0 {
+						countBytes = true
+					}
+
 					// now, actually assemble the instruction
-					outputIndex = Assembler_AssembleInstruction(instruction, outputIndex, fileBase, lineNumber)
+					outputIndex = Assembler_AssembleInstruction(instruction, outputIndex, countBytes, fileBase, lineNumber)
 				}
 			}
 		}
@@ -239,12 +255,14 @@ func Assembler_ParseFilePass(filePath string, fileBase string, origin int, maxLe
 	return outputIndex
 }
 
-func Assembler_AssembleInstruction(instruction Instruction, outputIndex int, fileBase string, lineNumber int) int {
+func Assembler_AssembleInstruction(instruction Instruction, outputIndex int, countBytes bool, fileBase string, lineNumber int) int {
 	output := OpCodes_GetOutput(instruction, fileBase, lineNumber)
 	for i := 0; i < len(output); i++ {
-		CurrentROM.Output[outputIndex] = output[i]
+		CurrentROM.Output[CurrentROM.CurrentBank][outputIndex] = output[i]
 		outputIndex++
 	}
-	CurrentROM.UsedByteCount += len(output)
+	if countBytes {
+		CurrentROM.UsedByteCount[CurrentROM.CurrentBank] += len(output)
+	}
 	return outputIndex
 }
