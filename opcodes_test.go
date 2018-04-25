@@ -32,13 +32,24 @@ func TryTestInput(t *testing.T, instruction Instruction, expectedOutput []byte) 
 func TestControlInstructions(t *testing.T) {
 	TryTestInput(t, Instruction{"CALL", []string{"1234"}}, []byte{0xCD, 0xD2, 0x04})
 	TryTestInput(t, Instruction{"CALL", []string{"Z", "1234"}}, []byte{0xCC, 0xD2, 0x04})
+
 	TryTestInput(t, Instruction{"JP", []string{"1234"}}, []byte{0xC3, 0xD2, 0x04})
 	TryTestInput(t, Instruction{"JP", []string{"HL"}}, []byte{0xE9})
 	TryTestInput(t, Instruction{"JP", []string{"[HL]"}}, []byte{0xE9})
 	TryTestInput(t, Instruction{"JP", []string{"Z", "1234"}}, []byte{0xCA, 0xD2, 0x04})
+
 	TryTestInput(t, Instruction{"RET", []string{}}, []byte{0xC9})
 	TryTestInput(t, Instruction{"RET", []string{"Z"}}, []byte{0xC8})
 	TryTestInput(t, Instruction{"RETI", []string{}}, []byte{0xD9})
+
+	TryTestInput(t, Instruction{"RST", []string{"0x00"}}, []byte{0xC7})
+	TryTestInput(t, Instruction{"RST", []string{"0x08"}}, []byte{0xCF})
+	TryTestInput(t, Instruction{"RST", []string{"0x10"}}, []byte{0xD7})
+	TryTestInput(t, Instruction{"RST", []string{"0x18"}}, []byte{0xDF})
+	TryTestInput(t, Instruction{"RST", []string{"0x20"}}, []byte{0xE7})
+	TryTestInput(t, Instruction{"RST", []string{"0x28"}}, []byte{0xEF})
+	TryTestInput(t, Instruction{"RST", []string{"0x30"}}, []byte{0xF7})
+	TryTestInput(t, Instruction{"RST", []string{"0x38"}}, []byte{0xFF})
 }
 
 func TestBitInstructions(t *testing.T) {

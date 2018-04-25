@@ -57,6 +57,8 @@ var OpCodes_Table = map[string]OpCodeInfo{
 	"EX":  OpCodeInfo{[]int{2}},
 	"EXX": OpCodeInfo{[]int{0}},
 
+	"RST": OpCodeInfo{[]int{1}},
+
 	"LDI":  OpCodeInfo{[]int{0}},
 	"CPI":  OpCodeInfo{[]int{0}},
 	"INI":  OpCodeInfo{[]int{0}},
@@ -391,6 +393,13 @@ func OpCodes_GetOutput(instruction Instruction, fileBase string, lineNumber int)
 		}
 	case "EXX":
 		return []byte{OpCodes_AsmXZQP(3, 1, 1, 1)}
+
+	case "RST":
+		vector := OpCodes_GetOperandAsNumber(instruction, 0, fileBase, lineNumber)
+		if vector > 0x38 || vector%8 != 0 {
+			log.Fatalf("Invalid reset vector '%d' for %s at %s:%d", vector, instruction.Mnemonic, fileBase, lineNumber)
+		}
+		return []byte{OpCodes_AsmXZY(3, 7, vector/8)}
 
 	case "LDI":
 		fallthrough
