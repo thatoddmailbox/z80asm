@@ -19,6 +19,7 @@ var Parser_8BitRegisterNames = []string{
 
 var Parser_16BitRegisterNames = []string{
 	"AF",
+	"AF'",
 	"BC",
 	"[BC]",
 	"DE",
@@ -27,6 +28,7 @@ var Parser_16BitRegisterNames = []string{
 	"[HL]",
 	"PC",
 	"SP",
+	"[SP]",
 }
 
 var Parser_ConditionCodes = []string{

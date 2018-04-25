@@ -70,16 +70,8 @@ func TestLoadInstructions(t *testing.T) {
 	TryTestInput(t, Instruction{"LD", []string{"[DE]", "A"}}, []byte{0x12})
 	TryTestInput(t, Instruction{"LD", []string{"[HL]", "A"}}, []byte{0x77})
 	TryTestInput(t, Instruction{"LD", []string{"A", "[HL]"}}, []byte{0x7E})
-	TryTestInput(t, Instruction{"LD", []string{"[1234]", "A"}}, []byte{0xEA, 0xD2, 0x04})
-	TryTestInput(t, Instruction{"LD", []string{"A", "[1234]"}}, []byte{0xFA, 0xD2, 0x04})
-	TryTestInput(t, Instruction{"LDH", []string{"A", "[40]"}}, []byte{0xF0, 0x28})
-	TryTestInput(t, Instruction{"LDH", []string{"A", "[65320]"}}, []byte{0xF0, 0x28})
-	TryTestInput(t, Instruction{"LDH", []string{"[40]", "A"}}, []byte{0xE0, 0x28})
-	TryTestInput(t, Instruction{"LDH", []string{"[65320]", "A"}}, []byte{0xE0, 0x28})
-	TryTestInput(t, Instruction{"LDI", []string{"[HL]", "A"}}, []byte{0x22})
-	TryTestInput(t, Instruction{"LDI", []string{"A", "[HL]"}}, []byte{0x2A})
-	TryTestInput(t, Instruction{"LDD", []string{"[HL]", "A"}}, []byte{0x32})
-	TryTestInput(t, Instruction{"LDD", []string{"A", "[HL]"}}, []byte{0x3A})
+	TryTestInput(t, Instruction{"LD", []string{"[1234]", "A"}}, []byte{0x32, 0xD2, 0x04})
+	TryTestInput(t, Instruction{"LD", []string{"A", "[1234]"}}, []byte{0x3A, 0xD2, 0x04})
 }
 
 func TestALUInstructions(t *testing.T) {
@@ -131,8 +123,6 @@ func TestMathInstructions(t *testing.T) {
 }
 
 func TestROTInstructions(t *testing.T) {
-	TryTestInput(t, Instruction{"CPL", []string{}}, []byte{0x2F})
-
 	TryTestInput(t, Instruction{"RLC", []string{"A"}}, []byte{0xCB, 0x07})
 	TryTestInput(t, Instruction{"RLC", []string{"B"}}, []byte{0xCB, 0x00})
 	TryTestInput(t, Instruction{"RLC", []string{"[HL]"}}, []byte{0xCB, 0x06})
@@ -166,6 +156,25 @@ func TestROTInstructions(t *testing.T) {
 	TryTestInput(t, Instruction{"SRL", []string{"[HL]"}}, []byte{0xCB, 0x3E})
 }
 
+func TestMiscALUInstructions(t *testing.T) {
+	TryTestInput(t, Instruction{"RLCA", []string{}}, []byte{0x07})
+	TryTestInput(t, Instruction{"RRCA", []string{}}, []byte{0x0F})
+	TryTestInput(t, Instruction{"RLA", []string{}}, []byte{0x17})
+	TryTestInput(t, Instruction{"RRA", []string{}}, []byte{0x1F})
+	TryTestInput(t, Instruction{"DAA", []string{}}, []byte{0x27})
+	TryTestInput(t, Instruction{"CPL", []string{}}, []byte{0x2F})
+	TryTestInput(t, Instruction{"SCF", []string{}}, []byte{0x37})
+	TryTestInput(t, Instruction{"CCF", []string{}}, []byte{0x3F})
+}
+
+func TestExchangeInstructions(t *testing.T) {
+	TryTestInput(t, Instruction{"EX", []string{"AF", "AF'"}}, []byte{0x08})
+	TryTestInput(t, Instruction{"EX", []string{"[SP]", "HL"}}, []byte{0xE3})
+	TryTestInput(t, Instruction{"EX", []string{"DE", "HL"}}, []byte{0xEB})
+
+	TryTestInput(t, Instruction{"EXX", []string{}}, []byte{0xD9})
+}
+
 func TestDataInstructions(t *testing.T) {
 	TryTestInput(t, Instruction{"IN", []string{"[C]"}}, []byte{0xED, 0x70})
 	TryTestInput(t, Instruction{"IN", []string{"C", "[C]"}}, []byte{0xED, 0x48})
@@ -174,6 +183,28 @@ func TestDataInstructions(t *testing.T) {
 	TryTestInput(t, Instruction{"OUT", []string{"[C]", "B"}}, []byte{0xED, 0x41})
 	TryTestInput(t, Instruction{"OUT", []string{"[C]", "0"}}, []byte{0xED, 0x71})
 	TryTestInput(t, Instruction{"OUT", []string{"[66]", "A"}}, []byte{0xD3, 0x42})
+}
+
+func TestBlockInstructions(t *testing.T) {
+	TryTestInput(t, Instruction{"LDI", []string{}}, []byte{0xED, 0xA0})
+	TryTestInput(t, Instruction{"CPI", []string{}}, []byte{0xED, 0xA1})
+	TryTestInput(t, Instruction{"INI", []string{}}, []byte{0xED, 0xA2})
+	TryTestInput(t, Instruction{"OUTI", []string{}}, []byte{0xED, 0xA3})
+
+	TryTestInput(t, Instruction{"LDD", []string{}}, []byte{0xED, 0xA8})
+	TryTestInput(t, Instruction{"CPD", []string{}}, []byte{0xED, 0xA9})
+	TryTestInput(t, Instruction{"IND", []string{}}, []byte{0xED, 0xAA})
+	TryTestInput(t, Instruction{"OUTD", []string{}}, []byte{0xED, 0xAB})
+
+	TryTestInput(t, Instruction{"LDIR", []string{}}, []byte{0xED, 0xB0})
+	TryTestInput(t, Instruction{"CPIR", []string{}}, []byte{0xED, 0xB1})
+	TryTestInput(t, Instruction{"INIR", []string{}}, []byte{0xED, 0xB2})
+	TryTestInput(t, Instruction{"OTIR", []string{}}, []byte{0xED, 0xB3})
+
+	TryTestInput(t, Instruction{"LDDR", []string{}}, []byte{0xED, 0xB8})
+	TryTestInput(t, Instruction{"CPDR", []string{}}, []byte{0xED, 0xB9})
+	TryTestInput(t, Instruction{"INDR", []string{}}, []byte{0xED, 0xBA})
+	TryTestInput(t, Instruction{"OTDR", []string{}}, []byte{0xED, 0xBB})
 }
 
 func TestMiscInstructions(t *testing.T) {

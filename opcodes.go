@@ -45,11 +45,39 @@ var OpCodes_Table = map[string]OpCodeInfo{
 	"SWAP": OpCodeInfo{[]int{1}},
 	"SRL":  OpCodeInfo{[]int{1}},
 
+	"RLCA": OpCodeInfo{[]int{0}},
+	"RRCA": OpCodeInfo{[]int{0}},
+	"RLA":  OpCodeInfo{[]int{0}},
+	"RRA":  OpCodeInfo{[]int{0}},
+	"DAA":  OpCodeInfo{[]int{0}},
+	"CPL":  OpCodeInfo{[]int{0}},
+	"SCF":  OpCodeInfo{[]int{0}},
+	"CCF":  OpCodeInfo{[]int{0}},
+
+	"EX":  OpCodeInfo{[]int{2}},
+	"EXX": OpCodeInfo{[]int{0}},
+
+	"LDI":  OpCodeInfo{[]int{0}},
+	"CPI":  OpCodeInfo{[]int{0}},
+	"INI":  OpCodeInfo{[]int{0}},
+	"OUTI": OpCodeInfo{[]int{0}},
+	"LDD":  OpCodeInfo{[]int{0}},
+	"CPD":  OpCodeInfo{[]int{0}},
+	"IND":  OpCodeInfo{[]int{0}},
+	"OUTD": OpCodeInfo{[]int{0}},
+	"LDIR": OpCodeInfo{[]int{0}},
+	"CPIR": OpCodeInfo{[]int{0}},
+	"INIR": OpCodeInfo{[]int{0}},
+	"OTIR": OpCodeInfo{[]int{0}},
+	"LDDR": OpCodeInfo{[]int{0}},
+	"CPDR": OpCodeInfo{[]int{0}},
+	"INDR": OpCodeInfo{[]int{0}},
+	"OTDR": OpCodeInfo{[]int{0}},
+
 	"BIT":  OpCodeInfo{[]int{2}},
 	"RES":  OpCodeInfo{[]int{2}},
 	"SET":  OpCodeInfo{[]int{2}},
 	"CALL": OpCodeInfo{[]int{1, 2}},
-	"CPL":  OpCodeInfo{[]int{0}},
 	"JP":   OpCodeInfo{[]int{1, 2}},
 	"DEC":  OpCodeInfo{[]int{1}},
 	"INC":  OpCodeInfo{[]int{1}},
@@ -58,9 +86,6 @@ var OpCodes_Table = map[string]OpCodeInfo{
 	"IN":   OpCodeInfo{[]int{1, 2}},
 	"HALT": OpCodeInfo{[]int{0}},
 	"LD":   OpCodeInfo{[]int{2}},
-	"LDH":  OpCodeInfo{[]int{2}},
-	"LDI":  OpCodeInfo{[]int{2}},
-	"LDD":  OpCodeInfo{[]int{2}},
 	"NOP":  OpCodeInfo{[]int{0}},
 	"OUT":  OpCodeInfo{[]int{2}},
 	"POP":  OpCodeInfo{[]int{1}},
@@ -116,6 +141,17 @@ var OpCodes_Table_ALU = map[string]int{
 	"CP":  7,
 }
 
+var OpCodes_Table_MiscALU = map[string]int{
+	"RLCA": 0,
+	"RRCA": 1,
+	"RLA":  2,
+	"RRA":  3,
+	"DAA":  4,
+	"CPL":  5,
+	"SCF":  6,
+	"CCF":  7,
+}
+
 var OpCodes_Table_ROT = map[string]int{
 	"RLC":  0,
 	"RRC":  1,
@@ -125,6 +161,28 @@ var OpCodes_Table_ROT = map[string]int{
 	"SRA":  5,
 	"SWAP": 6,
 	"SRL":  7,
+}
+
+var OpCodes_Table_BLI = map[string][]int{
+	"LDI":  []int{4, 0},
+	"CPI":  []int{4, 1},
+	"INI":  []int{4, 2},
+	"OUTI": []int{4, 3},
+
+	"LDD":  []int{5, 0},
+	"CPD":  []int{5, 1},
+	"IND":  []int{5, 2},
+	"OUTD": []int{5, 3},
+
+	"LDIR": []int{6, 0},
+	"CPIR": []int{6, 1},
+	"INIR": []int{6, 2},
+	"OTIR": []int{6, 3},
+
+	"LDDR": []int{7, 0},
+	"CPDR": []int{7, 1},
+	"INDR": []int{7, 2},
+	"OTDR": []int{7, 3},
 }
 
 func OpCodes_GetOperandAsNumber(instruction Instruction, i int, fileBase string, lineNumber int) int {
@@ -303,6 +361,73 @@ func OpCodes_GetOutput(instruction Instruction, fileBase string, lineNumber int)
 		targetVal := OpCodes_Table_R[OpCodes_GetOperandAsRegister8(instruction, 0, true, fileBase, lineNumber)]
 		return []byte{0xCB, OpCodes_AsmXZY(0, targetVal, yVal)}
 
+	case "RLCA":
+		fallthrough
+	case "RRCA":
+		fallthrough
+	case "RLA":
+		fallthrough
+	case "RRA":
+		fallthrough
+	case "DAA":
+		fallthrough
+	case "CPL":
+		fallthrough
+	case "SCF":
+		fallthrough
+	case "CCF":
+		yVal := OpCodes_Table_MiscALU[instruction.Mnemonic]
+		return []byte{OpCodes_AsmXZY(0, 7, yVal)}
+
+	case "EX":
+		if instruction.Operands[0] == "AF" && instruction.Operands[1] == "AF'" {
+			return []byte{OpCodes_AsmXZY(0, 0, 1)}
+		} else if instruction.Operands[0] == "[SP]" && instruction.Operands[1] == "HL" {
+			return []byte{OpCodes_AsmXZY(3, 3, 4)}
+		} else if instruction.Operands[0] == "DE" && instruction.Operands[1] == "HL" {
+			return []byte{OpCodes_AsmXZY(3, 3, 5)}
+		} else {
+			log.Fatalf("Invalid operands '%s' and '%s' for %s at %s:%d", instruction.Operands[0], instruction.Operands[1], instruction.Mnemonic, fileBase, lineNumber)
+		}
+	case "EXX":
+		return []byte{OpCodes_AsmXZQP(3, 1, 1, 1)}
+
+	case "LDI":
+		fallthrough
+	case "CPI":
+		fallthrough
+	case "INI":
+		fallthrough
+	case "OUTI":
+		fallthrough
+	case "LDD":
+		fallthrough
+	case "CPD":
+		fallthrough
+	case "IND":
+		fallthrough
+	case "OUTD":
+		fallthrough
+	case "LDIR":
+		fallthrough
+	case "CPIR":
+		fallthrough
+	case "INIR":
+		fallthrough
+	case "OTIR":
+		fallthrough
+	case "LDDR":
+		fallthrough
+	case "CPDR":
+		fallthrough
+	case "INDR":
+		fallthrough
+	case "OTDR":
+		indexVals := OpCodes_Table_BLI[instruction.Mnemonic]
+		aVal := indexVals[0]
+		bVal := indexVals[1]
+		return []byte{0xED, OpCodes_AsmXZY(2, bVal, aVal)}
+
 	case "BIT":
 		fallthrough
 	case "RES":
@@ -349,9 +474,6 @@ func OpCodes_GetOutput(instruction Instruction, fileBase string, lineNumber int)
 			}
 			return []byte{OpCodes_AsmXZY(3, z, OpCodes_Table_CC[instruction.Operands[0]]), byte(target & 0xFF), byte(target >> 8)}
 		}
-
-	case "CPL":
-		return []byte{0x2F}
 
 	case "DEC":
 		fallthrough
@@ -460,11 +582,11 @@ func OpCodes_GetOutput(instruction Instruction, fileBase string, lineNumber int)
 		}
 
 		if dstType == OperandValueIndirect && instruction.Operands[1] == "A" {
-			return []byte{0xEA, byte(dstVal & 0xFF), byte(dstVal >> 8)}
+			return []byte{0x32, byte(dstVal & 0xFF), byte(dstVal >> 8)}
 		}
 
 		if instruction.Operands[0] == "A" && srcType == OperandValueIndirect {
-			return []byte{0xFA, byte(srcVal & 0xFF), byte(srcVal >> 8)}
+			return []byte{0x3A, byte(srcVal & 0xFF), byte(srcVal >> 8)}
 		}
 
 		if instruction.Operands[0] == "[BC]" && instruction.Operands[1] == "A" {
@@ -481,63 +603,6 @@ func OpCodes_GetOutput(instruction Instruction, fileBase string, lineNumber int)
 		}
 
 		log.Fatalf("Invalid operands '%s' and '%s' for LD instruction at %s:%d", instruction.Operands[0], instruction.Operands[1], fileBase, lineNumber)
-
-	case "LDH":
-		dstType := OpCodes_GetOperandType(instruction, 0, false)
-		srcType := OpCodes_GetOperandType(instruction, 1, false)
-		srcVal := 0
-		dstVal := 0
-
-		if instruction.Operands[0] == "A" && srcType == OperandValueIndirect {
-			srcVal, err = strconv.Atoi(strings.Replace(strings.Replace(instruction.Operands[1], "[", "", -1), "]", "", -1))
-			if err != nil {
-				panic(err)
-			}
-
-			if instruction.Operands[0] != "A" {
-				log.Fatalf("LDH can only load into register A at %s:%d", instruction.Mnemonic, fileBase, lineNumber)
-			}
-			if srcVal >= 0xFF00 {
-				srcVal = srcVal - 0xFF00
-			}
-			OpCodes_EnsureNumberIsByte(srcVal, fileBase, lineNumber)
-			return []byte{0xF0, byte(srcVal & 0xFF)}
-		} else if dstType == OperandValueIndirect && instruction.Operands[1] == "A" {
-			dstVal, err = strconv.Atoi(strings.Replace(strings.Replace(instruction.Operands[0], "[", "", -1), "]", "", -1))
-			if err != nil {
-				panic(err)
-			}
-
-			if instruction.Operands[1] != "A" {
-				log.Fatalf("LDH can only load from register A at %s:%d", instruction.Mnemonic, fileBase, lineNumber)
-			}
-			if dstVal >= 0xFF00 {
-				dstVal = dstVal - 0xFF00
-			}
-			OpCodes_EnsureNumberIsByte(dstVal, fileBase, lineNumber)
-			return []byte{0xE0, byte(dstVal & 0xFF)}
-		} else {
-			log.Fatalf("Invalid operands '%s' and '%s' for LDH instruction at %s:%d", instruction.Operands[0], instruction.Operands[1], fileBase, lineNumber)
-		}
-
-	case "LDI":
-		fallthrough
-	case "LDD":
-		if instruction.Operands[0] == "A" && instruction.Operands[1] == "[HL]" {
-			if instruction.Mnemonic == "LDI" {
-				return []byte{0x2A}
-			} else {
-				return []byte{0x3A}
-			}
-		} else if instruction.Operands[0] == "[HL]" && instruction.Operands[1] == "A" {
-			if instruction.Mnemonic == "LDI" {
-				return []byte{0x22}
-			} else {
-				return []byte{0x32}
-			}
-		} else {
-			log.Fatalf("Invalid operands '%s' and '%s' for %s instruction at %s:%d", instruction.Operands[0], instruction.Operands[1], instruction.Mnemonic, fileBase, lineNumber)
-		}
 
 	case "NOP":
 		return []byte{0x00}
