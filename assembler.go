@@ -175,7 +175,7 @@ func Assembler_ParseFilePass(filePath string, fileBase string, origin int, maxLe
 					log.Fatalf("Tried to declare already existing label or constant '%s' at %s:%d", labelName, fileBase, lineNumber)
 				}
 
-				CurrentROM.Definitions[labelName] = outputIndex
+				CurrentROM.Definitions[labelName] = int(ROM_CalculateAbsoluteAddress(uint16(outputIndex), CurrentROM.CurrentBank))
 			} else {
 				// parse it character-by-character
 				buf := ""
