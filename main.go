@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -22,8 +23,19 @@ func main() {
 
 	log.Println()
 	log.Println("Constant listing:")
-	for name, val := range CurrentROM.Definitions {
-		log.Println(" *", name, val, "0x"+strconv.FormatInt(int64(val), 16))
+
+	definitionKeys := make([]string, len(CurrentROM.Definitions))
+	i := 0
+	for name, _ := range CurrentROM.Definitions {
+		definitionKeys[i] = name
+		i += 1
+	}
+
+	sort.Strings(definitionKeys)
+
+	for _, name := range definitionKeys {
+		value := CurrentROM.Definitions[name]
+		log.Println(" *", name, value, "0x"+strconv.FormatInt(int64(value), 16))
 	}
 
 	log.Println()
