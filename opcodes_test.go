@@ -83,6 +83,10 @@ func TestLoadInstructions(t *testing.T) {
 	TryTestInput(t, Instruction{"LD", []string{"A", "[HL]"}}, []byte{0x7E})
 	TryTestInput(t, Instruction{"LD", []string{"[1234]", "A"}}, []byte{0x32, 0xD2, 0x04})
 	TryTestInput(t, Instruction{"LD", []string{"A", "[1234]"}}, []byte{0x3A, 0xD2, 0x04})
+	TryTestInput(t, Instruction{"LD", []string{"[1234]", "HL"}}, []byte{0x22, 0xD2, 0x04})
+	TryTestInput(t, Instruction{"LD", []string{"HL", "[1234]"}}, []byte{0x2A, 0xD2, 0x04})
+	TryTestInput(t, Instruction{"LD", []string{"[1234]", "BC"}}, []byte{0xED, 0x43, 0xD2, 0x04})
+	TryTestInput(t, Instruction{"LD", []string{"BC", "[1234]"}}, []byte{0xED, 0x4B, 0xD2, 0x04})
 }
 
 func TestALUInstructions(t *testing.T) {
@@ -106,6 +110,7 @@ func TestALUInstructions(t *testing.T) {
 	TryTestInput(t, Instruction{"SBC", []string{"A", "66"}}, []byte{0xDE, 0x42})
 	TryTestInput(t, Instruction{"SBC", []string{"A", "B"}}, []byte{0x98})
 	TryTestInput(t, Instruction{"SBC", []string{"A", "[HL]"}}, []byte{0x9E})
+	TryTestInput(t, Instruction{"SBC", []string{"HL", "BC"}}, []byte{0xED, 0x42})
 
 	TryTestInput(t, Instruction{"AND", []string{"66"}}, []byte{0xE6, 0x42})
 	TryTestInput(t, Instruction{"AND", []string{"B"}}, []byte{0xA0})

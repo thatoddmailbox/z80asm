@@ -318,7 +318,7 @@ func OpCodes_GetOutput(instruction Instruction, fileBase string, lineNumber int)
 	case "CP":
 		if len(instruction.Operands) == 2 {
 			if instruction.Operands[0] != "A" {
-				if instruction.Mnemonic != "ADD" || instruction.Operands[0] != "HL" {
+				if (instruction.Mnemonic != "ADD" && instruction.Mnemonic != "SBC") || instruction.Operands[0] != "HL" {
 					log.Fatalf("Invalid operand '%s' for %s at %s:%d", instruction.Operands[0], instruction.Mnemonic, fileBase, lineNumber)
 				}
 			}
@@ -328,6 +328,12 @@ func OpCodes_GetOutput(instruction Instruction, fileBase string, lineNumber int)
 			// yay special case
 			srcVal := OpCodes_GetOperandAsRegister16(instruction, 1, fileBase, lineNumber)
 			return []byte{OpCodes_AsmXZQP(0, 1, 1, OpCodes_Table_RP[srcVal])}
+		}
+
+		if instruction.Mnemonic == "SBC" && instruction.Operands[0] == "HL" {
+			// yay special case
+			srcVal := OpCodes_GetOperandAsRegister16(instruction, 1, fileBase, lineNumber)
+			return []byte{0xED, OpCodes_AsmXZQP(1, 2, 0, OpCodes_Table_RP[srcVal])}
 		}
 
 		targetIndex := len(instruction.Operands) - 1
@@ -588,6 +594,18 @@ func OpCodes_GetOutput(instruction Instruction, fileBase string, lineNumber int)
 		}
 		if dstType == OperandRegister16 && srcType == OperandValue {
 			return []byte{byte((dstVal << 4) | 1), byte(srcVal & 0xFF), byte(srcVal >> 8)}
+		}
+
+		if dstType == OperandValueIndirect && srcVal == OpCodes_Table_RP["HL"] {
+			return []byte{OpCodes_AsmXZQP(0, 2, 0, 2), byte(dstVal & 0xFF), byte(dstVal >> 8)}
+		} else if dstType == OperandValueIndirect && srcType == OperandRegister16 {
+			return []byte{0xED, OpCodes_AsmXZQP(1, 3, 0, srcVal), byte(dstVal & 0xFF), byte(dstVal >> 8)}
+		}
+
+		if dstVal == OpCodes_Table_RP["HL"] && srcType == OperandValueIndirect {
+			return []byte{OpCodes_AsmXZQP(0, 2, 1, 2), byte(srcVal & 0xFF), byte(srcVal >> 8)}
+		} else if dstType == OperandRegister16 && srcType == OperandValueIndirect {
+			return []byte{0xED, OpCodes_AsmXZQP(1, 3, 1, dstVal), byte(srcVal & 0xFF), byte(srcVal >> 8)}
 		}
 
 		if dstType == OperandValueIndirect && instruction.Operands[1] == "A" {

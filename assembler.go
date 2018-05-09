@@ -196,6 +196,9 @@ func Assembler_ParseFilePass(filePath string, fileBase string, origin int, maxLe
 						} else {
 							log.Fatalf("Unexpected '%s' after '/' at %s:%d", string(line[i+1]), fileBase, lineNumber)
 						}
+					} else if char == ';' {
+						// it's a comment now
+						break
 					} else if char == ' ' && instruction.Mnemonic == "" {
 						// yay we have a mnemonic
 						instruction.Mnemonic = strings.ToUpper(buf)
@@ -220,6 +223,8 @@ func Assembler_ParseFilePass(filePath string, fileBase string, origin int, maxLe
 					buf = ""
 				}
 				if foundAnInstruction {
+					buf = strings.TrimSpace(buf)
+
 					if buf != "" {
 						// add any extra as the last operand
 						instruction.Operands = append(instruction.Operands, buf)
