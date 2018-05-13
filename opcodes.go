@@ -616,6 +616,10 @@ func OpCodes_GetOutput(instruction Instruction, fileBase string, lineNumber int)
 			return []byte{0x3A, byte(srcVal & 0xFF), byte(srcVal >> 8)}
 		}
 
+		if instruction.Operands[0] == "SP" && instruction.Operands[1] == "HL" {
+			return []byte{OpCodes_AsmXZQP(3, 1, 1, 3)}
+		}
+
 		if instruction.Operands[0] == "[BC]" && instruction.Operands[1] == "A" {
 			return []byte{OpCodes_AsmXZQP(0, 2, 0, 0)}
 		}
