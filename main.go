@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 	"sort"
@@ -9,8 +10,14 @@ import (
 
 const KiB = 1024
 
+var WeirdMapping bool
+
 func main() {
 	log.Println("z80asm")
+
+	flag.BoolVar(&WeirdMapping, "weird-mapping", false, "Enables the weird mapping, with two modern ROMs in ROM0 and ROM1, and a modern RAM chip in ROM3.")
+
+	flag.Parse()
 
 	workingDirectory, err := os.Getwd()
 	if err != nil {
